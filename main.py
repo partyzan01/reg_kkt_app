@@ -4,15 +4,6 @@ import tkinter
 import re
 import os
 from datetime import date
-import pathlib
-
-
-# def main():
-#    pass
-
-
-# if __name__ == '__main__':
-#    main()
 
 
 # Функция для горячих клавиш на русской клавиатуре
