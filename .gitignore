@@ -1,1 +1,5 @@
 .idea/
+/main.exe
+/main.spec
+/build/
+/dist/main/reg_copy - копия.xls

@@ -3,7 +3,8 @@ import win32com.client
 import tkinter
 import re
 import os
-from datetime import date
+from datetime import datetime
+from dadata import Dadata
 
 
 # Функция для горячих клавиш на русской клавиатуре
@@ -34,7 +35,7 @@ def date_mask(text, valid, entry):
 
 # Маска времени
 def time_mask(text, valid, entry):
-    ip = re.findall("^\d{0,2}\:\d{0,2}$", text.get())
+    ip = re.findall("^\d{0,2}:\d{0,2}$", text.get())
     if len(ip) != 1:
         text.set(valid[0])
     if ip:
@@ -45,87 +46,41 @@ def time_mask(text, valid, entry):
             entry.icursor(cursor_position + 1)
 
 
-# Функция, которая подсчитывает количество букв в каждом слове предложения и возвращает их в список
-def qty_words(sentence):
-    qty_letters = len(sentence)  # Общее количество символов в предложении
-    qty_letters_in_each_word = []  # Количество символов в каждом слове
-    count_words = 0  # Счетчик символов в слове
-    count_iter = 0  # Счетчик итерации
-
-    for i in sentence:
-        count_words += 1
-        count_iter += 1
-        if count_iter >= qty_letters:
-            qty_letters_in_each_word.append(count_words)
-        if i == " ":
-            qty_letters_in_each_word.append(count_words - 1)
-            count_words = 0
-        continue
-    return qty_letters_in_each_word
-
-
-# Функция, которая возвращает количество символов помещающихся в одну строку
-def qty_srtings(name, cells):
-    cell_sum = cells
-    qty = qty_words(name)
-
-    x = 0
-    z = 0
-    qty_sum = 0
-    sum_sum = []
+def string_lines(name, cells):
+    """Функция разбивает name на слова помещающиеся в cell и возвращает в виде списка"""
+    name = name.split()
+    cache = None
     string = []
 
-    if len(name) <= cell_sum:
-        string.append(len(name))
-    else:
-        while len(name) - z - 1 >= cell_sum:
-            for r in qty:
-                if (x + 1) <= (len(qty) - 1):
-                    if x == 0:
-                        qty_sum = qty[x] + qty[x + 1] + 1
-                        sum_sum.append(qty_sum)
-                        if qty_sum > cell_sum:
-                            qty_sum = qty[x]
-                            break
-                    else:
-                        qty_sum = qty_sum + qty[x + 1] + 1
-                        sum_sum.append(qty_sum)
-                        if qty_sum > cell_sum:
-                            qty_sum = sum_sum[len(sum_sum) - 2]
-                            break
-                    x = x + 1
-            string.append(qty_sum)
-            z = z + qty_sum
-            qty_sum = 0
-            while x >= 0:
-                del qty[0]
-                x = x - 1
+    for i_word in name:
+        if cache is None:
+            cache = i_word
+        elif len(cache + ' ' + i_word) <= cells:
+            cache += ' ' + i_word
+        else:
+            string.append(cache)
+            cache = i_word
+    string.append(cache)
+
     return string
 
 
-# Функция записи в одну строку
-def one_way(content, first_cell_hor, first_cell_ver, cells, sheet):
-    a = first_cell_hor
-    b = first_cell_ver
+def one_way(content, first_hor_cell, first_ver_cell, cells, sheet):
+    """Функция записывает разбитые строки в файл"""
+    hor_cell = first_hor_cell
+    ver_cell = first_ver_cell
     if len(content) <= cells:
         for rec in content:
-            sheet.Cells(a, b).Value = rec
-            b = b + 3
+            sheet.Cells(hor_cell, ver_cell).Value = rec
+            ver_cell += 3
     else:
-        hm = qty_srtings(content, cells)
-        x = 0
-        for rec in content:
-            if x < len(hm):
-                h = first_cell_ver + hm[x] * 3 - 1
-            else:
-                h = first_cell_ver + cells * 3 - 1
-            if b > h:
-                b = first_cell_ver
-                a = a + 2
-                x = x + 1
-                continue
-            sheet.Cells(a, b).Value = rec
-            b = b + 3
+        lines = string_lines(content, cells)
+        for line in lines:
+            for rec in line:
+                sheet.Cells(hor_cell, ver_cell).Value = rec
+                ver_cell += 3
+            ver_cell = first_ver_cell
+            hor_cell += 2
 
 
 def scroll_func(event):
@@ -137,26 +92,15 @@ def _on_mousewheel(event):
 
 
 def show():
+    lst = [rereg_on, check_1, check_2, check_3, check_4, check_5, check_6, check_7, check_8]
     if reg_var.get() == 2:
-        rereg_on.grid(row=1, column=0, columnspan=4, sticky='w')
-        check_1.grid(row=2, column=0, columnspan=4, sticky='w')
-        check_2.grid(row=3, column=0, columnspan=4, sticky='w')
-        check_3.grid(row=4, column=0, columnspan=4, sticky='w')
-        check_4.grid(row=5, column=0, columnspan=4, sticky='w')
-        check_5.grid(row=6, column=0, columnspan=4, sticky='w')
-        check_6.grid(row=7, column=0, columnspan=4, sticky='w')
-        check_7.grid(row=8, column=0, columnspan=4, sticky='w')
-        check_8.grid(row=9, column=0, columnspan=4, sticky='w')
+        i = 1
+        for each in lst:
+            each.grid(row=i, column=0, columnspan=4, sticky='w')
+            i += 1
     else:
-        rereg_on.grid_forget()
-        check_1.grid_forget()
-        check_2.grid_forget()
-        check_3.grid_forget()
-        check_4.grid_forget()
-        check_5.grid_forget()
-        check_6.grid_forget()
-        check_7.grid_forget()
-        check_8.grid_forget()
+        for each in lst:
+            each.grid_forget()
 
 
 def show_fd_info():
@@ -220,6 +164,19 @@ def callback(*args):
     return ofd
 
 
+def define_index():
+    token = "6e838fdce5894678fab559c0acc7cf161171b490"
+    secret = "17d9a39d25e051db82ece68679e9efd4cba1aee9"
+    dadata = Dadata(token, secret)
+
+    address_parts = (region_txt.get(), rayon_txt.get(), city_txt.get(), punkt_txt.get(), street_txt.get(),
+                     house_txt.get(), housing_txt.get())
+    address = ' '.join(address_parts)
+    result = dadata.clean(name="address", source=address)
+    index_var.set(result['postal_code'])
+    dadata.close()
+
+
 def clicked():
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\#
     #                                         СТРАНИЦА 1                                              #
@@ -227,10 +184,10 @@ def clicked():
 
     # Открытие файла
     fileDir = os.path.dirname(os.path.realpath('__file__'))
-    filename = os.path.join(fileDir, 'dist\main\\reg_copy.xls')
-    print(filename)
+    filename = os.path.join(fileDir, 'dist', 'main', 'reg_copy.xls')
 
     Excel = win32com.client.Dispatch("Excel.Application")
+    Excel.DisplayAlerts = False
     wb = Excel.Workbooks.Open(Filename=filename)
     sheet_1 = wb.Sheets("s1")
     sheet_2 = wb.Sheets("s2")
@@ -293,31 +250,24 @@ def clicked():
         i = i + 3
 
     # Сегодняшняя дата
-    today = date.today()
+    td_date = datetime.now().strftime('%d.%m.%Y')
+    td = td_date.split('.')
+
     # День
-    td_day = str(today.day)
     i = 28
-    if len(td_day) == 2:
-        for rec in td_day:
-            sheet_1.Cells(45, i).Value = rec
-            i = i + 3
-    else:
-        sheet_1.Cells(45, i).Value = 0
-        sheet_1.Cells(45, i + 3).Value = td_day
+    for rec in td[0]:
+        sheet_1.Cells(45, i).Value = rec
+        i = i + 3
+
     # Месяц
-    td_day = str(today.month)
     i = 37
-    if len(td_day) == 2:
-        for rec in td_day:
-            sheet_1.Cells(45, i).Value = rec
-            i = i + 3
-    else:
-        sheet_1.Cells(45, i).Value = 0
-        sheet_1.Cells(45, i + 3).Value = td_day
+    for rec in td[1]:
+        sheet_1.Cells(45, i).Value = rec
+        i = i + 3
+
     # Год
-    td_day = str(today.year)
     i = 46
-    for rec in td_day:
+    for rec in td[2]:
         sheet_1.Cells(45, i).Value = rec
         i = i + 3
 
@@ -327,6 +277,8 @@ def clicked():
 
     # Документ заявителя
     one_way(doc_txt.get(), 12, 1, 20, sheet_2)
+    # Дата внизу страницы
+    sheet_2.Cells(48, 95).Value = td_date
 
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 3                                               #
@@ -351,6 +303,9 @@ def clicked():
     one_way(city_txt.get(), 42, 31, 30, sheet_3)  # город
     one_way(punkt_txt.get(), 44, 31, 30, sheet_3)  # населенный пункт
 
+    # Дата внизу страницы
+    sheet_3.Cells(47, 95).Value = td_date
+
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 4                                               #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
@@ -366,6 +321,9 @@ def clicked():
     # Параметры ККТ
     sheet_4.Cells(27, 52).Value = opt1.get()  # Автономный режим
 
+    # Дата внизу страницы
+    sheet_4.Cells(46, 95).Value = td_date
+
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 5                                               #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
@@ -377,6 +335,9 @@ def clicked():
     sheet_5.Cells(30, 58).Value = opt6.get()  # Автоматический режим
     sheet_5.Cells(34, 58).Value = opt7.get()  # Расчеты в интернете
 
+    # Дата внизу страницы
+    sheet_5.Cells(50, 95).Value = td_date
+
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 6                                               #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
@@ -385,9 +346,20 @@ def clicked():
     sheet_6.Cells(14, 58).Value = opt9.get()  # БСО
     sheet_6.Cells(18, 58).Value = opt10.get()  # Подакцизные товары
 
+    # Дата внизу страницы
+    sheet_6.Cells(45, 95).Value = td_date
+
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 7                                               #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
+
+    if opt6.get() == 2:
+        wb.Worksheets('s7').Delete()
+        wb.Worksheets('s8').Delete()
+    else:
+        # Дата внизу страницы
+        sheet_7.Cells(47, 95).Value = td_date
+        sheet_8.Cells(49, 95).Value = td_date
 
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 8                                               #
@@ -460,64 +432,83 @@ def clicked():
     one_way(name_ofd, 12, 55, 20, sheet_9)  # Наименование ОФД
     one_way(inn_ofd, 21, 55, 12, sheet_9)  # ИНН ОФД
 
+    # Дата внизу страницы
+    sheet_9.Cells(44, 95).Value = td_date
+
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 10                                              #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
 
-    # ФН поврежден
-    sheet_10.Cells(11, 56).Value = fn_crash.get()
+    if var4.get() == 2:
+        wb.Worksheets('s10').Delete()
+    else:
+        # ФН поврежден
+        sheet_10.Cells(11, 56).Value = fn_crash.get()
 
-    # № ФД
-    one_way(fd_num_txt.get(), 18, 56, 8, sheet_10)
+        # № ФД
+        one_way(fd_num_txt.get(), 18, 56, 8, sheet_10)
 
-    # Дата
-    reg_date_pr = reg_date_txt.get()
-    if len(reg_date_pr) == 10:
-        sheet_10.Cells(22, 56).Value = reg_date_pr[0]
-        sheet_10.Cells(22, 59).Value = reg_date_pr[1]
-        sheet_10.Cells(22, 65).Value = reg_date_pr[3]
-        sheet_10.Cells(22, 68).Value = reg_date_pr[4]
-        sheet_10.Cells(22, 74).Value = reg_date_pr[6]
-        sheet_10.Cells(22, 77).Value = reg_date_pr[7]
-        sheet_10.Cells(22, 80).Value = reg_date_pr[8]
-        sheet_10.Cells(22, 83).Value = reg_date_pr[9]
+        # Дата
+        reg_date_pr = reg_date_txt.get()
+        if len(reg_date_pr) == 10:
+            sheet_10.Cells(22, 56).Value = reg_date_pr[0]
+            sheet_10.Cells(22, 59).Value = reg_date_pr[1]
+            sheet_10.Cells(22, 65).Value = reg_date_pr[3]
+            sheet_10.Cells(22, 68).Value = reg_date_pr[4]
+            sheet_10.Cells(22, 74).Value = reg_date_pr[6]
+            sheet_10.Cells(22, 77).Value = reg_date_pr[7]
+            sheet_10.Cells(22, 80).Value = reg_date_pr[8]
+            sheet_10.Cells(22, 83).Value = reg_date_pr[9]
 
-    # Время
-    reg_time_pr = reg_time_txt.get()
-    if len(reg_time_pr) == 5:
-        sheet_10.Cells(26, 56).Value = reg_time_pr[0]
-        sheet_10.Cells(26, 59).Value = reg_time_pr[1]
-        sheet_10.Cells(26, 65).Value = reg_time_pr[3]
-        sheet_10.Cells(26, 68).Value = reg_time_pr[4]
+        # Время
+        reg_time_pr = reg_time_txt.get()
+        if len(reg_time_pr) == 5:
+            sheet_10.Cells(26, 56).Value = reg_time_pr[0]
+            sheet_10.Cells(26, 59).Value = reg_time_pr[1]
+            sheet_10.Cells(26, 65).Value = reg_time_pr[3]
+            sheet_10.Cells(26, 68).Value = reg_time_pr[4]
 
-    # ФП
-    one_way(fp_txt.get(), 29, 56, 10, sheet_10)
+        # ФП
+        one_way(fp_txt.get(), 29, 56, 10, sheet_10)
 
-    # № ФД закрытия ФН
-    one_way(close_fd_num_txt.get(), 34, 56, 8, sheet_10)
+        # № ФД закрытия ФН
+        one_way(close_fd_num_txt.get(), 34, 56, 8, sheet_10)
 
-    # Дата закрытия ФН
-    close_reg_date_pr = close_reg_date_txt.get()
-    if len(close_reg_date_pr) == 10:
-        sheet_10.Cells(38, 56).Value = close_reg_date_pr[0]
-        sheet_10.Cells(38, 59).Value = close_reg_date_pr[1]
-        sheet_10.Cells(38, 65).Value = close_reg_date_pr[3]
-        sheet_10.Cells(38, 68).Value = close_reg_date_pr[4]
-        sheet_10.Cells(38, 74).Value = close_reg_date_pr[6]
-        sheet_10.Cells(38, 77).Value = close_reg_date_pr[7]
-        sheet_10.Cells(38, 80).Value = close_reg_date_pr[8]
-        sheet_10.Cells(38, 83).Value = close_reg_date_pr[9]
+        # Дата закрытия ФН
+        close_reg_date_pr = close_reg_date_txt.get()
+        if len(close_reg_date_pr) == 10:
+            sheet_10.Cells(38, 56).Value = close_reg_date_pr[0]
+            sheet_10.Cells(38, 59).Value = close_reg_date_pr[1]
+            sheet_10.Cells(38, 65).Value = close_reg_date_pr[3]
+            sheet_10.Cells(38, 68).Value = close_reg_date_pr[4]
+            sheet_10.Cells(38, 74).Value = close_reg_date_pr[6]
+            sheet_10.Cells(38, 77).Value = close_reg_date_pr[7]
+            sheet_10.Cells(38, 80).Value = close_reg_date_pr[8]
+            sheet_10.Cells(38, 83).Value = close_reg_date_pr[9]
 
-    # Время закрытия ФН
-    close_reg_time_pr = close_reg_time_txt.get()
-    if len(close_reg_time_pr) == 5:
-        sheet_10.Cells(42, 56).Value = close_reg_time_pr[0]
-        sheet_10.Cells(42, 59).Value = close_reg_time_pr[1]
-        sheet_10.Cells(42, 65).Value = close_reg_time_pr[3]
-        sheet_10.Cells(42, 68).Value = close_reg_time_pr[4]
+        # Время закрытия ФН
+        close_reg_time_pr = close_reg_time_txt.get()
+        if len(close_reg_time_pr) == 5:
+            sheet_10.Cells(42, 56).Value = close_reg_time_pr[0]
+            sheet_10.Cells(42, 59).Value = close_reg_time_pr[1]
+            sheet_10.Cells(42, 65).Value = close_reg_time_pr[3]
+            sheet_10.Cells(42, 68).Value = close_reg_time_pr[4]
 
-    # ФП закрытия ФН
-    one_way(close_fp_txt.get(), 45, 56, 10, sheet_10)
+        # ФП закрытия ФН
+        one_way(close_fp_txt.get(), 45, 56, 10, sheet_10)
+
+        # Дата внизу страницы
+        sheet_10.Cells(51, 95).Value = td_date
+
+    # Страницы
+    for i, sheet_obj in enumerate(wb.Sheets):
+        sheet = wb.Sheets(sheet_obj.Name)
+        if len(str(i + 1)) == 1:
+            number = '00{}'.format(i + 1)
+        else:
+            number = '0{}'.format(i + 1)
+        one_way(number, 6, 76, 3, sheet)
+    one_way(number, 26, 36, 3, sheet_1)
 
     # Сохранение и закрытие файла
     file_way = wb.Application.GetSaveAsFilename("reg" + inn_txt.get(), "Файл Excel 2007 (*.xls), *.xls")
@@ -701,8 +692,12 @@ address_lbl.grid(row=22, column=0, columnspan=4, sticky='w' + 'e')
 index_lbl = tkinter.Label(frame, text="Почтовый индекс")
 index_lbl.grid(row=23, column=0, sticky='w')
 
-index_txt = tkinter.Entry(frame, width=15)
+index_var = tkinter.StringVar()
+index_txt = tkinter.Entry(frame, textvariable=index_var, width=15)
 index_txt.grid(row=23, column=1, sticky='w', padx=5, pady=5)
+
+index_btn = tkinter.Button(frame, text="<-", command=define_index)
+index_btn.grid(row=23, column=2, sticky='w', padx=0, pady=5)
 
 # Регион
 region_lbl = tkinter.Label(frame, text="Регион (код)")
