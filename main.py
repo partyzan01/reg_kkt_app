@@ -98,9 +98,13 @@ def show():
         for each in lst:
             each.grid(row=i, column=0, columnspan=4, sticky='w')
             i += 1
+        kkt_rn_lbl.grid(row=20, column=0, sticky='w')
+        kkt_rn_txt.grid(row=20, column=1, columnspan=3, padx=5, pady=5)
     else:
         for each in lst:
             each.grid_forget()
+        kkt_rn_lbl.grid_forget()
+        kkt_rn_txt.grid_forget()
 
 
 def show_fd_info():
@@ -165,8 +169,8 @@ def callback(*args):
 
 
 def define_index():
-    token = "6e838fdce5894678fab559c0acc7cf161171b490"
-    secret = "17d9a39d25e051db82ece68679e9efd4cba1aee9"
+    token = "dd8e2bcbf21a08ddd423a0704f5dd4a4c3001d82"
+    secret = "d0d05ba0d05963a7bb34069950ca52d219471c51"
     dadata = Dadata(token, secret)
 
     address_parts = (region_txt.get(), rayon_txt.get(), city_txt.get(), punkt_txt.get(), street_txt.get(),
@@ -183,12 +187,12 @@ def clicked():
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\#
 
     # Открытие файла
-    fileDir = os.path.dirname(os.path.realpath('__file__'))
-    filename = os.path.join(fileDir, 'dist', 'main', 'reg_copy.xls')
+    file_dir = os.path.dirname(os.path.realpath('__file__'))
+    filename = os.path.join(file_dir, 'dist', 'main', 'reg_copy.xls')
 
-    Excel = win32com.client.Dispatch("Excel.Application")
-    Excel.DisplayAlerts = False
-    wb = Excel.Workbooks.Open(Filename=filename)
+    excel = win32com.client.Dispatch("Excel.Application")
+    excel.DisplayAlerts = False
+    wb = excel.Workbooks.Open(Filename=filename)
     sheet_1 = wb.Sheets("s1")
     sheet_2 = wb.Sheets("s2")
     sheet_3 = wb.Sheets("s3")
@@ -277,6 +281,10 @@ def clicked():
 
     # Документ заявителя
     one_way(doc_txt.get(), 12, 1, 20, sheet_2)
+
+    # Регистрационный номер
+    one_way(kkt_rn_txt.get(), 21, 22, 20, sheet_2)
+
     # Дата внизу страницы
     sheet_2.Cells(48, 95).Value = td_date
 
@@ -330,35 +338,37 @@ def clicked():
 
     sheet_5.Cells(11, 58).Value = opt2.get()  # Проведение лотерей
     sheet_5.Cells(18, 58).Value = opt3.get()  # Проведение азартных игр
-    sheet_5.Cells(23, 58).Value = opt4.get()  # Банковский платежный агент (субагент)
-    sheet_5.Cells(27, 58).Value = opt5.get()  # Платежный агент (субагент)
-    sheet_5.Cells(30, 58).Value = opt6.get()  # Автоматический режим
-    sheet_5.Cells(34, 58).Value = opt7.get()  # Расчеты в интернете
+    sheet_5.Cells(23, 58).Value = opt4.get()  # Обмен игорных знаков/денег
+    sheet_5.Cells(29, 58).Value = opt5.get()  # Банковский платежный агент (субагент)
+    sheet_5.Cells(33, 58).Value = opt6.get()  # Платежный агент (субагент)
+    sheet_5.Cells(37, 58).Value = opt7.get()  # Автоматический режим
+    sheet_5.Cells(42, 58).Value = opt8.get()  # Маркировка
 
     # Дата внизу страницы
-    sheet_5.Cells(50, 95).Value = td_date
+    sheet_5.Cells(51, 95).Value = td_date
 
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 6                                               #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
 
-    sheet_6.Cells(10, 58).Value = opt8.get()  # Развозная торговля
-    sheet_6.Cells(14, 58).Value = opt9.get()  # БСО
-    sheet_6.Cells(18, 58).Value = opt10.get()  # Подакцизные товары
+    sheet_6.Cells(10, 58).Value = opt9.get()  # Расчеты в интернете
+    sheet_6.Cells(15, 58).Value = opt10.get()  # Развозная торговля
+    sheet_6.Cells(19, 58).Value = opt11.get()  # БСО
+    sheet_6.Cells(24, 58).Value = opt12.get()  # Подакцизные товары
 
     # Дата внизу страницы
-    sheet_6.Cells(45, 95).Value = td_date
+    sheet_6.Cells(47, 95).Value = td_date
 
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 7                                               #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
 
-    if opt6.get() == 2:
+    if opt7.get() == 2:
         wb.Worksheets('s7').Delete()
         wb.Worksheets('s8').Delete()
     else:
         # Дата внизу страницы
-        sheet_7.Cells(47, 95).Value = td_date
+        sheet_7.Cells(49, 95).Value = td_date
         sheet_8.Cells(49, 95).Value = td_date
 
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
@@ -433,7 +443,7 @@ def clicked():
     one_way(inn_ofd, 21, 55, 12, sheet_9)  # ИНН ОФД
 
     # Дата внизу страницы
-    sheet_9.Cells(44, 95).Value = td_date
+    sheet_9.Cells(46, 95).Value = td_date
 
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
     #                                         СТРАНИЦА 10                                              #
@@ -511,11 +521,12 @@ def clicked():
     one_way(number, 26, 36, 3, sheet_1)
 
     # Сохранение и закрытие файла
-    file_way = wb.Application.GetSaveAsFilename("reg" + inn_txt.get(), "Файл Excel 2007 (*.xls), *.xls")
+    file_way = wb.Application.GetSaveAsFilename("reg - {0}".format(name_txt.get().replace('"', '')),
+                                                "Файл Excel 2007 (*.xls), *.xls")
+    print(file_way)
     wb.SaveAs(file_way)
     wb.Close()
-    Excel.Quit()
-    os.system(file_way)
+    excel.Quit()
 
 
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ #
@@ -668,155 +679,170 @@ kkt_zn_txt = tkinter.Entry(frame, width=50)
 kkt_zn_txt.grid(row=19, column=1, columnspan=3, padx=5, pady=5)
 # -----------------Конец------------------
 
+# ------------РН ККТ------------
+kkt_rn_lbl = tkinter.Label(frame, text="РН ККТ")
+kkt_rn_txt = tkinter.Entry(frame, width=50)
+# -----------------Конец------------------
+
 # ------------Наименование ФН------------
 fn_name_lbl = tkinter.Label(frame, text="Наименование ФН")
-fn_name_lbl.grid(row=20, column=0, sticky='w')
+fn_name_lbl.grid(row=21, column=0, sticky='w')
 
 fn_name_txt = tkinter.Entry(frame, width=50)
-fn_name_txt.grid(row=20, column=1, columnspan=3, padx=5, pady=5)
+fn_name_txt.grid(row=21, column=1, columnspan=3, padx=5, pady=5)
 # -----------------Конец------------------
 
 # ------------ЗН ФН------------
 fn_zn_lbl = tkinter.Label(frame, text="ЗН ФН")
-fn_zn_lbl.grid(row=21, column=0, sticky='w')
+fn_zn_lbl.grid(row=22, column=0, sticky='w')
 
 fn_zn_txt = tkinter.Entry(frame, width=50)
-fn_zn_txt.grid(row=21, column=1, columnspan=3, padx=5, pady=5)
+fn_zn_txt.grid(row=22, column=1, columnspan=3, padx=5, pady=5)
 # -----------------Конец------------------
 
 # ------------Адрес установки ККТ------------
 address_lbl = tkinter.Label(frame, text="Адрес установки ККТ")
-address_lbl.grid(row=22, column=0, columnspan=4, sticky='w' + 'e')
+address_lbl.grid(row=23, column=0, columnspan=4, sticky='w' + 'e')
 
 # Индекс
 index_lbl = tkinter.Label(frame, text="Почтовый индекс")
-index_lbl.grid(row=23, column=0, sticky='w')
+index_lbl.grid(row=24, column=0, sticky='w')
 
 index_var = tkinter.StringVar()
 index_txt = tkinter.Entry(frame, textvariable=index_var, width=15)
-index_txt.grid(row=23, column=1, sticky='w', padx=5, pady=5)
+index_txt.grid(row=24, column=1, sticky='w', padx=5, pady=5)
 
 index_btn = tkinter.Button(frame, text="<-", command=define_index)
-index_btn.grid(row=23, column=2, sticky='w', padx=0, pady=5)
+index_btn.grid(row=24, column=2, sticky='w', padx=0, pady=5)
 
 # Регион
 region_lbl = tkinter.Label(frame, text="Регион (код)")
-region_lbl.grid(row=23, column=2, sticky='e')
+region_lbl.grid(row=24, column=2, sticky='e')
 
 region_txt = tkinter.Entry(frame, width=15)
-region_txt.grid(row=23, column=3, padx=5, pady=5)
+region_txt.grid(row=24, column=3, padx=5, pady=5)
 
 # Район
 rayon_lbl = tkinter.Label(frame, text="Район")
-rayon_lbl.grid(row=24, column=0, sticky='w')
+rayon_lbl.grid(row=25, column=0, sticky='w')
 
 rayon_txt = tkinter.Entry(frame, width=50)
-rayon_txt.grid(row=24, column=1, columnspan=3, padx=5, pady=5)
+rayon_txt.grid(row=25, column=1, columnspan=3, padx=5, pady=5)
 
 # Город
 city_lbl = tkinter.Label(frame, text="Город")
-city_lbl.grid(row=25, column=0, sticky='w')
+city_lbl.grid(row=26, column=0, sticky='w')
 
 city_txt = tkinter.Entry(frame, width=50)
-city_txt.grid(row=25, column=1, columnspan=3, padx=5, pady=5)
+city_txt.grid(row=26, column=1, columnspan=3, padx=5, pady=5)
 
 # Населенный пункт
 punkt_lbl = tkinter.Label(frame, text="Населенный пункт")
-punkt_lbl.grid(row=26, column=0, sticky='w')
+punkt_lbl.grid(row=27, column=0, sticky='w')
 
 punkt_txt = tkinter.Entry(frame, width=50)
-punkt_txt.grid(row=26, column=1, columnspan=3, padx=5, pady=5)
+punkt_txt.grid(row=27, column=1, columnspan=3, padx=5, pady=5)
 
 # Улица
 street_lbl = tkinter.Label(frame, text="Улица")
-street_lbl.grid(row=27, column=0, sticky='w')
+street_lbl.grid(row=28, column=0, sticky='w')
 
 street_txt = tkinter.Entry(frame, width=50)
-street_txt.grid(row=27, column=1, columnspan=3, padx=5, pady=5)
+street_txt.grid(row=28, column=1, columnspan=3, padx=5, pady=5)
 
 # Номер дома
 house_lbl = tkinter.Label(frame, text="Номер дома")
-house_lbl.grid(row=28, column=1, sticky='w')
+house_lbl.grid(row=29, column=1, sticky='w')
 
 house_txt = tkinter.Entry(frame, width=15)
-house_txt.grid(row=29, column=1, sticky='w', padx=5, pady=5)
+house_txt.grid(row=30, column=1, sticky='w', padx=5, pady=5)
 
 # Номер корпуса
 housing_lbl = tkinter.Label(frame, text="Номер корпуса")
-housing_lbl.grid(row=28, column=2, sticky='w')
+housing_lbl.grid(row=29, column=2, sticky='w')
 
 housing_txt = tkinter.Entry(frame, width=15)
-housing_txt.grid(row=29, column=2, sticky='w', padx=5, pady=5)
+housing_txt.grid(row=30, column=2, sticky='w', padx=5, pady=5)
 
 # Квартиры
 room_lbl = tkinter.Label(frame, text="Квартира (офис)")
-room_lbl.grid(row=28, column=3, sticky='w')
+room_lbl.grid(row=29, column=3, sticky='w')
 
 room_txt = tkinter.Entry(frame, width=15)
-room_txt.grid(row=29, column=3, sticky='w', padx=5, pady=5)
+room_txt.grid(row=30, column=3, sticky='w', padx=5, pady=5)
 
 # Место установки
 place_lbl = tkinter.Label(frame, text="Место установки ККТ")
-place_lbl.grid(row=30, column=0, sticky='w')
+place_lbl.grid(row=31, column=0, sticky='w')
 
 place_txt = tkinter.Entry(frame, width=50)
-place_txt.grid(row=30, column=1, columnspan=3, padx=5, pady=5)
+place_txt.grid(row=31, column=1, columnspan=3, padx=5, pady=5)
 
 # -------------------Параметры ККТ---------------------
 options_lbl = tkinter.Label(frame, text="Параметры ККТ")
-options_lbl.grid(row=31, column=0, columnspan=4)
+options_lbl.grid(row=32, column=0, columnspan=4)
 
 opt1 = tkinter.IntVar()
 opt1.set(2)
 check_opt_1 = tkinter.Checkbutton(frame, text="Автономный режим", variable=opt1, onvalue=1, offvalue=2,
                                   command=show_ofd)
-check_opt_1.grid(row=32, column=0, columnspan=2, sticky='w')
+check_opt_1.grid(row=33, column=0, columnspan=2, sticky='w')
 
 opt2 = tkinter.IntVar()
 opt2.set(2)
 check_opt_2 = tkinter.Checkbutton(frame, text="Проведение лотерей", variable=opt2, onvalue=1, offvalue=2)
-check_opt_2.grid(row=33, column=0, columnspan=2, sticky='w')
+check_opt_2.grid(row=34, column=0, columnspan=2, sticky='w')
 
 opt3 = tkinter.IntVar()
 opt3.set(2)
 check_opt_3 = tkinter.Checkbutton(frame, text="Проведение азартных игр", variable=opt3, onvalue=1, offvalue=2)
-check_opt_3.grid(row=34, column=0, columnspan=2, sticky='w')
+check_opt_3.grid(row=35, column=0, columnspan=2, sticky='w')
 
 opt4 = tkinter.IntVar()
 opt4.set(2)
-check_opt_4 = tkinter.Checkbutton(frame, text="Банковский платежный агент\n(субагент)", variable=opt4, onvalue=1,
+check_opt_4 = tkinter.Checkbutton(frame, text="Обмен игорных знаков/денег", variable=opt4, onvalue=1,
                                   offvalue=2, justify='left')
-check_opt_4.grid(row=35, column=0, columnspan=2, sticky='w')
+check_opt_4.grid(row=36, column=0, columnspan=2, sticky='w')
 
 opt5 = tkinter.IntVar()
 opt5.set(2)
-check_opt_5 = tkinter.Checkbutton(frame, text="Платежный агент (субагент)", variable=opt5, onvalue=1, offvalue=2)
-check_opt_5.grid(row=36, column=0, columnspan=2, sticky='w')
+check_opt_5 = tkinter.Checkbutton(frame, text="Банковский платежный агент\n(субагент)", variable=opt5, onvalue=1, offvalue=2)
+check_opt_5.grid(row=37, column=0, columnspan=2, sticky='w')
 
 opt6 = tkinter.IntVar()
 opt6.set(2)
-check_opt_6 = tkinter.Checkbutton(frame, text="Автоматический режим", variable=opt6, onvalue=1, offvalue=2)
-check_opt_6.grid(row=32, column=2, columnspan=4, sticky='w')
+check_opt_6 = tkinter.Checkbutton(frame, text="Платежный агент (субагент)", variable=opt6, onvalue=1, offvalue=2)
+check_opt_6.grid(row=38, column=0, columnspan=2, sticky='w')
 
 opt7 = tkinter.IntVar()
 opt7.set(2)
-check_opt_7 = tkinter.Checkbutton(frame, text="Расчеты только в Интернете", variable=opt7, onvalue=1, offvalue=2)
+check_opt_7 = tkinter.Checkbutton(frame, text="Автоматический режим", variable=opt7, onvalue=1, offvalue=2)
 check_opt_7.grid(row=33, column=2, columnspan=4, sticky='w')
 
 opt8 = tkinter.IntVar()
 opt8.set(2)
-check_opt_8 = tkinter.Checkbutton(frame, text="Развозная торговля", variable=opt8, onvalue=1, offvalue=2)
+check_opt_8 = tkinter.Checkbutton(frame, text="Маркировка", variable=opt8, onvalue=1, offvalue=2)
 check_opt_8.grid(row=34, column=2, columnspan=4, sticky='w')
 
 opt9 = tkinter.IntVar()
 opt9.set(2)
-check_opt_9 = tkinter.Checkbutton(frame, text="Только для услуг (БСО)", variable=opt9, onvalue=1, offvalue=2)
+check_opt_9 = tkinter.Checkbutton(frame, text="Расчеты только в Интернете", variable=opt9, onvalue=1, offvalue=2)
 check_opt_9.grid(row=35, column=2, columnspan=4, sticky='w')
 
 opt10 = tkinter.IntVar()
 opt10.set(2)
-check_opt_10 = tkinter.Checkbutton(frame, text="Продажа подакцизных товаров", variable=opt10, onvalue=1, offvalue=2)
+check_opt_10 = tkinter.Checkbutton(frame, text="Развозная торговля", variable=opt10, onvalue=1, offvalue=2)
 check_opt_10.grid(row=36, column=2, columnspan=4, sticky='w')
+
+opt11 = tkinter.IntVar()
+opt11.set(2)
+check_opt_11 = tkinter.Checkbutton(frame, text="Только для услуг (БСО)", variable=opt11, onvalue=1, offvalue=2)
+check_opt_11.grid(row=37, column=2, columnspan=4, sticky='w')
+
+opt12 = tkinter.IntVar()
+opt12.set(2)
+check_opt_12 = tkinter.Checkbutton(frame, text="Продажа подакцизных товаров", variable=opt12, onvalue=1, offvalue=2)
+check_opt_12.grid(row=38, column=2, columnspan=4, sticky='w')
 # -----------------------Конец------------------------
 
 # ------------------------ОФД-------------------------
